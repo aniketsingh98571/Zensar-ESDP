@@ -1,0 +1,290 @@
+CREATE TABLE post(
+post_id NUMBER(6),
+post_date DATe DEFAULT SYSDATE,
+post_description VARCHAR(50) NOT NULL,
+login_id NUMBER(6),
+CONSTRAINT fk FOREIGN KEY(login_id)
+REFERENCES login(login_id)
+)
+DESC login
+SELECT * from login
+INSERT INTO login VALUES(1,'aniket','ani','01-01-21')
+-- STEP#1
+DROP TABLE login;
+CREATE TABLE login (
+    login_id    NUMBER(6) NOT NULL,
+    user_name   CHAR(30) NOT NULL,
+    password    CHAR(10) NOT NULL,
+    creation_date DATE DEFAULT SYSDATE,
+    CONSTRAINT login_login_id_PK PRIMARY KEY(login_id),
+    CONSTRAINT login_user_name_UQ UNIQUE(user_name),
+    CONSTRAINT login_password_CK CHECK(length(password) >= 8)
+);
+DESC login;
+
+-- STEP#2 - VIEW login table in Dev Tool
+LOGIN table - columns and constraints tab to be verified
+
+-- STEP#3
+-- INSERT with ALL columns
+INSERT INTO login (login_id, user_name, password, creation_date) 
+    VALUES(1, 'amar', 'amar007', SYSDATE);
+-- INSERT with 3 columns (omitting creation_date column - DEFAULT - SYSDATE)
+INSERT INTO login (login_id, user_name, password) 
+    VALUES(2, 'akbar', 'akbar007');
+-- INSERT with NO column definition
+INSERT INTO login VALUES(3, 'anthony', 'anthony007', SYSDATE);
+
+SELECT * FROM login;
+
+-- CONSTRAINT CHECK...
+-- PRIMARY KEY - ORA-00001: unique constraint (HR.LOGIN_LOGIN_ID_PK) violated
+INSERT INTO login VALUES(3, 'anthony', 'anthony007', SYSDATE);
+
+-- UNIQUE KEY - ORA-00001: unique constraint (HR.LOGIN_USERNAME_NAME_UQ) violated
+INSERT INTO login VALUES(4, 'anthony', 'anthony007', SYSDATE);
+
+INSERT INTO login VALUES(4, 'tom', 'tom007', SYSDATE);
+
+-- CHECK - ORA-12899: value too large for column "HR"."LOGIN"."PASSWORD" (actual: 15, maximum: 10)
+INSERT INTO login VALUES(5, 'dic', 'dic007', SYSDATE);
+
+SELECT * FROM login;
+--column level constraint
+CREATE TABLE post_updated(
+post_id NUMBER(6) PRIMARY KEY,
+post_date DATE DEFAULT SYSDATE,
+post_description VARCHAR(50) NOT NULL,
+login_id NUMBER(6), FOREIGN KEY(login_id) REFERENCES login(login_id)
+)
+DROP TABLE post;
+CREATE TABLE post (
+    post_id     NUMBER(6) NOT NULL,
+    post_date   DATE DEFAULT SYSDATE,
+    post_description    VARCHAR(30) NOT NULL,
+    login_id    NUMBER(6),
+    CONSTRAINT post_post_id_PK PRIMARY KEY(post_id),
+    CONSTRAINT post_login_id_FK FOREIGN KEY(login_id) REFERENCES login(login_id)
+);
+
+SELECT * FROM post;
+
+-- FK - ORA-02291: integrity constraint (HR.POST_LOGIN_ID_FK) violated - parent key not found
+INSERT INTO post VALUES(1, SYSDATE, 'oracle-SQL', 0);
+
+INSERT INTO post VALUES(1, SYSDATE, 'oracle-SQL', 1);
+INSERT INTO post VALUES(2, SYSDATE, 'msserver-SQL', 2);
+INSERT INTO post VALUES(3, SYSDATE, 'mysql-SQL', 3);
+SELECT * FROM post;
+
+--lesson 10
+--VIEW
+SELECT * from login;
+CREATE VIEW restrict  AS --restrict[virtual table]
+SELECT username, login_id, creation_date 
+FROM login; --login[base table]
+SELECT * FROM restrict;
+DROP VIEW restrict;
+
+ --Sequence
+ 
+ CREATE SEQUENCE seq_ID
+ INCREMENT BY 1
+ START WITH 1
+ MAXVALUE 9999;
+ 
+ CREATE TABLE oppo (user_id int, password varchar(50))
+ INSERT INTO oppo VALUES (seq_ID.NEXTVAL, 'hi1');
+ INSERT INTO oppo VALUES (seq_ID.NEXTVAL, 'hi2');
+ INSERT INTO oppo VALUES (seq_ID.NEXTVAL, 'hi3');
+ SELECT * FROM oppo;
+ SELECT seq_ID.CURRVAL FROM dual;
+ SELECT seq_ID.NEXTVAL FROM dual;
+ 
+ -- Index
+-- STEP#1
+DROP TABLE post;
+DROP TABLE login;
+
+CREATE TABLE login (
+    login_id    NUMBER(6)   NOT NULL,   -- UQ
+    user_name   CHAR(30)    NOT NULL,   -- UQ
+    password    CHAR(30)    NOT NULL,
+    creation_date DATE  DEFAULT SYSDATE
+    );
+
+-- STEP#2
+CREATE UNIQUE INDEX idx_login_login_id_UQ
+ON login(login_id);
+
+CREATE UNIQUE INDEX idx_login_user_name_UQ
+ON login(user_name);
+
+CREATE UNIQUE INDEX idx_login_user_name_pwd_UQ
+ON login(user_name, password);
+
+- STEP#3
+INSERT INTO login  
+    VALUES (1, 'amar', 'amar007', SYSDATE);
+INSERT INTO login 
+    VALUES (2, 'akbar', 'akbar007', SYSDATE);
+INSERT INTO login
+    VALUES (3, 'anthony', 'anthony007', SYSDATE);
+
+SELECT * FROM login;
+
+-- STEP#4
+-- idx_login_login_id_UQ
+INSERT INTO login
+    VALUES (3, 'tom', 'tom007', SYSDATE);
+-- Error: ORA-00001: unique constraint (HR.IDX_LOGIN_LOGIN_ID_UQ) violated
+
+-- idx_login_user_name_UQ
+INSERT INTO login
+    VALUES (4, 'anthony', 'anthony007', SYSDATE);
+-- Error: ORA-00001: unique constraint (HR.IDX_LOGIN_USER_NAME_UQ) violated
+
+INSERT INTO login
+    VALUES (5, 'anthony', 'anthony007', SYSDATE);
+    SELECT * FROM login;
+    CREATE VIEW aniket AS
+    SELECT username "user_name" from login;
+    *********************** VIEW ************************START
+
+-- Realtime working scenarios in IT industry
+DB - SYSTEM DBA - OWNER DB
+    CREATE / ALTER / DROP TABLE
+BE - DB Users  - RIGHTS/Permissions
+    CREATE Index / Views 
+    Complex Joins are created
+FE - JAVA APP Users  - RIGHTS/Permissions
+    SELECT TABLE/ Views
+    Weak in BE - Complex Joins is diffciult...
+TEST - SELECT Views
+
+-- STEP#1
+-- CREATE OR REPLACE VIEW
+CREATE OR REPLACE VIEW vw_current_users
+    AS 
+    SELECT user_id, user_name, creation_date
+    FROM login;
+
+DESC vw_current_users;
+
+-- ACCESS VIEW
+SELECT * FROM vw_current_users;
+SELECT user_id, user_name, creation_date FROM vw_current_users;
+
+-- STEP#2
+-- CREATE VIEW - column names
+CREATE OR REPLACE VIEW vw_current_users
+    AS 
+    SELECT user_id "login_id", user_name "login_name", creation_date "login_creation_date"
+    FROM login;
+
+DESC vw_current_users;      -- actual column names are hidden and aliases are displayed
+
+SELECT * FROM vw_current_users;
+-- Will not work
+SELECT login_id, login_name, login_creation_date FROM vw_current_users;
+SELECT "login_id", "login_name", "login_creation_date" FROM vw_current_users;
+
+-- STEP#3
+-- VIEW - DML operation
+-- INSERT can not be done as password is not visible to view and it can not accept NULL value
+CREATE OR REPLACE VIEW vw_current_users
+    AS 
+    SELECT user_id, user_name, creation_date
+    FROM login;
+
+SELECT * FROM vw_current_users;
+
+INSERT INTO vw_current_users VALUES(5, 'dic', SYSDATE);
+Error: ORA-01400: cannot insert NULL into ("HR"."LOGIN"."USER_PWD"
+SELECT * FROM login;
+INSERT INTO login   
+    VALUES (4, 'tom', 'tom007', SYSDATE);
+
+UPDATE vw_current_users
+    SET user_name = UPPER(user_name)
+    WHERE user_name = 'tom';
+DELETE vw_current_users
+    WHERE user_name = 'TOM';
+
+-- STEP#4 - WITH CHECK OPTION CONSTRAINT
+CREATE OR REPLACE VIEW vw_power_users
+AS 
+    SELECT user_id, user_name, creation_date
+    FROM login
+    WHERE user_name IN ('amar', 'akbar', 'anthony')
+    WITH CHECK OPTION CONSTRAINT vw_power_users_ck;
+
+-- DML via vw_power_users will not permit to DELETE users 'amar', 'akbar', 'anthony'
+DESC vw_power_users
+SELECT * FROM vw_power_users;
+SELECT user_id, user_name, creation_date FROM vw_power_users;
+
+UPDATE vw_power_users
+    SET user_name = UPPER(user_name)
+    WHERE user_name = 'amar';
+-- Error: ORA-01402: view WITH CHECK OPTION where-clause violation
+
+DELETE vw_power_users
+    WHERE user_name = 'amar';
+-- 1 row deleted. - is permitted
+
+-- STEP#5 - WITH READ ONLY
+CREATE OR REPLACE VIEW vw_power_users
+AS 
+    SELECT user_id, user_name, creation_date
+    FROM login
+    WHERE user_name IN ('amar', 'akbar', 'anthony')
+    WITH READ ONLY;
+
+DESC vw_power_users
+SELECT * FROM vw_power_users;
+SELECT user_id, user_name, creation_date FROM vw_power_users;
+
+UPDATE vw_power_users
+    SET user_name = UPPER(user_name)
+    WHERE user_name = 'akbar';
+-- Error: ORA-42399: cannot perform a DML operation on a read-only view
+
+DELETE vw_power_users
+    WHERE user_name = 'akbar';
+-- Error: ORA-42399: cannot perform a DML operation on a read-only view
+
+*********************** VIEW ************************END
+-- SYNONYM 
+CREATE SYNONYM user_log
+FOR login;
+
+SELECT * FROM user_log;
+SELECT user_id, user_name, user_pwd, creation_date FROM user_log;
+
+DROP SYNONYM user_log
+    
+    SELECT * FROM aniket;
+    SELECT "user_name" FROM aniket; --if a column is aliased with 
+    --other name in a view then it can be selected using ""[double] quotes
+--PL SQL
+
+--Anonymous block coed:- Decalring and initializing PL/SQL variables
+ SET SERVEROUTPUT ON;
+DECLARE
+p VARCHAR(20);
+BEGIN
+DBMS_OUTPUT.PUT_LINE('My name is' || p);
+p := 'aniket';
+DBMS_OUTPUT.PUT_LINE('My name is' || p);
+END;
+
+
+
+
+DECLARE
+name VARCHAR(20);
+BEGIN
+SELECT 'aniket' INTO name FROM DUAL;--always use INTO clause, do not just use SELECT statement in PL SQL
+DBMS_OUTPUT.PUT_LINE('Name is:' || name);
+END;

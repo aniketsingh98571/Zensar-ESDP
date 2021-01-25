@@ -1,0 +1,293 @@
+--Decalring variable
+DECLARE
+order_number NUMBER :=100; --semmicolon is must in PL SQL
+order_id NUMBER DEFAULT 100;
+customer_name VARCHAR(20):='John doe';
+BEGIN
+DBMS_OUTPUT.PUT_LINE('WELCOME');
+DBMS_OUtPUT.PUT_LINE('ORDER Number ' || order_number);
+DBMS_OUTPUT.PUT_LINE('order_id '|| order_id);
+order_id:=101;
+customer_name:='aniket';
+DBMS_OUtPUT.PUT_LINE('ORDER Number ' || order_number);
+DBMS_OUTPUT.PUT_LINE('order_id '|| order_id);
+DBMS_OUTPUT.PUT_LINE('Customer name '|| customer_name);
+END;
+
+--IF THEN ELSE statement
+DECLARE
+total_amount NUMBER:=95;
+discount NUMBER:=0;
+BEGIN
+IF total_amount>100
+THEN
+discount:=total_amount*0.1;
+ELSE
+discount:=total_amount*0.05;
+END IF;
+DBMS_OUTPUT.PUT_LINE(discount);
+END;
+
+--CASE
+DECLARE
+total NUMBER :=250;
+discount NUMBER:=0;
+BEGIN
+CASE
+WHEN total>200
+THEN
+discount:=total*0.2;
+WHEN total>=100
+THEN 
+discount:=total*0.1;
+ELSE
+discount:=total*0.05;
+END CASE;
+DBME
+
+--FOR LOOP
+DECLARE
+counter NUMBER:=10;
+BEGIN
+FOR counter IN 10..20
+LOOP
+DBMS_OUTPUT.PUT_LINE('Counter' || counter);
+END LOOP;
+END;
+    
+    
+    Exercise #1 PLSQL-Exercise-1
+<:--------------------------
+1) Write a program to declare 3 variables with datatype as below and display their values.
+* Number
+* Varchar
+* Date
+2) Write a program to check for a salary value and display the output based on the salary range (use 
+IF condition)
+* if salary is greater than 100000 then display the output as 'Grade A' 
+* if salary is between 50000 and 100000 then display the output as 'Grade B' 
+* if salary is between 25000 and 50000 then display the ou
+
+SELECT * FROM aniket;
+
+DECLARE
+your_name CHAR(30);--datatype size must be same as during creation of table
+BEGIN
+SELECT username INTO your_name 
+FROM login 
+WHERE login_id=4;
+DBMS_OUTPUT.PUT_LINE('USERNAME '|| your_name);
+END;
+--while loop
+--%TYPE -is used to refer to a data type from table
+--stored procedure
+
+A procedure is a group of PL/SQL statemet that yu can
+all by a process the data and return output if required
+
+CREATE [OR REPLACE] PROCEDURE procedure_name
+(parameter 1 MODE DATATYPE [DEFAULT expression],
+(parameter 2 MODE DATATYPE [DEFAULT expression])
+)
+AS
+[variable 1 DATATYPE;
+variable  DATATYPE..]
+BEGIN
+excutable statements;
+[EXCEPTION 
+WHEN
+exception_name
+THEN
+executable statement
+]
+END;
+MODE:
+IN:
+PL/SQL prevents you from changing it inside the program. [Read Only]
+	
+OUT:
+PL/SQL sets the value of parameter which can be received by calling program. [Write Only]
+
+IN OUT:
+PL/SQL allows parameter to read and update, which can be received by calling program. [Read/Write]
+
+--Stored Procedure -NO parameter
+CREATE OR REPLACE PROCEDURE p_user_details
+AS
+v_user_id login.login_id%TYPE;
+v_user_name login.username%TYPE;
+v_pasword login.password%TYPE;
+BEGIN
+SELECT login_id, username INTO v_user_id, v_user_name 
+FROM login where login_id=4;
+DBMS_OUTPUT.PUT_LINE(v_user_id ||' '||v_user_name);
+END;
+
+EXEC p_user_details
+
+CREATE OR REPLACE PROCEDURE user_details(id IN int)
+AS
+v_username login.username%TYPE;
+v_pwd login.password%TYPE;
+v_id login.login_id%TYPE;
+BEGIN
+SELECT username, password, login_id INTO v_username, v_pwd, v_id 
+FROM login
+WHERE login_id=id;
+DBMS_OUTPUT.PUT_LINE(v_id ||' '||v_username||' '||v_pwd);
+END;
+EXEC user_details(4)
+
+set serveroutput on
+
+-- Stored Procedure - ONE IN parameter and MULTIPLE OUT parameters
+CREATE OR REPLACE PROCEDURE p_get_user_details (
+    p_user_id   IN  login.user_id%TYPE,
+    p_user_name OUT login.user_name%TYPE,
+    p_user_pwd  OUT login.user_pwd%TYPE,
+    p_creation_date OUT login.creation_date%TYPE
+    )
+AS
+BEGIN
+    SELECT user_name, user_pwd, creation_date 
+        INTO p_user_name, p_user_pwd, p_creation_date 
+        FROM login
+        WHERE user_id=p_user_id;
+    --dbms_output.put_line('SELECTED!!!');
+    --dbms_output.put_line(p_user_id ||' '|| p_user_name ||' '|| p_user_pwd ||' '|| p_creation_date);
+END;
+
+-- Stored Procedure - ONE IN parameter and MULTIPLE OUT parameters - Calling using anonymous block
+DECLARE  --use this to fire procedure using ananymous block
+    v_user_id       login.login_id%TYPE := 4;
+    v_user_name     login.username%TYPE;
+    v_user_pwd      login.password%TYPE;
+    v_creation_date login.creation_date%TYPE;
+BEGIN    
+   user_details(v_user_id);
+    dbms_output.put_line(v_user_id ||' '|| v_user_name ||' '|| v_user_pwd ||' '|| v_creation_date);
+END;
+-- Lesson#PROCEDURE *** END
+
+CREATE OR REPLACE PROCEDURE p_user_details (p_user_id IN int)
+AS
+    v_user_name     login.username%TYPE;
+    v_user_pwd      login.password%TYPE;
+    v_creation_date login.creation_date%TYPE;
+BEGIN
+    SELECT username, password, creation_date 
+        INTO v_user_name, v_user_pwd, v_creation_date 
+        FROM login
+        WHERE login_id=p_user_id;
+    dbms_output.put_line(p_user_id ||' '|| v_user_name ||' '|| v_user_pwd ||' '|| v_creation_date);
+END;
+EXEC p_user_details (4)
+
+--Functions
+--A set of PL SQL statements which can be callled
+--by FUnctions can be used as a part of SQL expression
+
+CREATE [OR REPLACE] FUNCTION function_name
+(parameter 1 MODE DATATYPE [DEFAULT expression],
+parameter 2 MODE DATATYPE [DEFAULT expression])
+
+RETURN DATATYPE
+AS
+[variable1 DATATYPE;
+variable2 DATATYPE]
+BEGIN
+executable statements...
+return expression
+END;
+
+CREATE OR REPLACE FUNCTION f_get_user
+RETURN NUMBER
+IS
+v_user_account NUMBER:=0;
+BEGIN
+SELECT COUNT(*) INTO v_user_account
+FROM login;
+RETURN v_user_account;
+END;
+
+/
+DESC login
+SELECT f_get_user() FROM dual;
+
+DECLARE
+v_count NUMBER:=0;
+BEGIN
+v_count:=f_get_user();
+DBMS_OUTPUT.PUT_LINE(v_count);
+END;
+SELECT * from login;
+
+--FUNCTION -ONE IN parameter
+CREATE OR REPLACE FUNCTION f_get_pwd(
+p_usrname IN login.username%TYPE)
+RETURN CHAR
+AS
+v_user_password login.password%TYPE;
+BEGIN
+SELECT password INTO v_user_password FROM
+login WHERE username=p_usrname;
+RETURN v_user_password;
+END;
+
+SELECT f_get_pwd('xyz') FROM dual;
+
+DECLARE
+uname login.username%TYPE:='xyz';
+output login.password%TYPE;
+BEGIN
+output:=f_get_pwd(uname);
+DBMS_OUTPUT.PUT_LINE(output);
+END;
+
+--What are packages
+--A package groups logically related PL/SQL types, items and subprograms
+--like a procedure and function. A package can hold others constructs like exeception
+--variable, cursoer and type declaration.
+--There are 2 parts of package
+--1.specification
+--2.body
+--
+--Advantages of package
+--modularity
+--easier application design
+--informaation hiding
+--better performance
+--added functionality
+--
+--package specification
+-- the package specification tells a user of the package what it acna do rater how
+-- it will do. the spec containes nly the headers of the program untils reather
+-- than any executable code
+-- 
+-- --package body
+-- the package bod contains the program unit bodies-that is to say,
+-- the executable statements that correspond with the headers in the package specification
+ 
+ CREATE OR REPLACE PACKAGE BODY package_name
+ AS
+ program1_header;
+ program2_header;
+ program3_header;
+ END package_name;
+
+CREATE OR REPLACE PROCEDURE f_date
+AS
+v_sysdate DATE;
+BEGIN
+SELECT SYSDATE INTO v_sysdate FROM dual;
+DBMS_OUTPUT.PUT_LINE(v_sysdate);
+END;
+
+CREATE OR REPLACE FUNCTION f_sysdate
+RETURN DATE
+AS
+vsysdate DATE;
+BEGIN
+SELECT SYSDATE INTO vsysdate FROM dual;
+RETURN vsysdate;
+END;

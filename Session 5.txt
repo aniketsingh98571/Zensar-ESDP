@@ -1,0 +1,294 @@
+--Package specification
+CREATE OR REPLACE PACKAGE PCK_EMP
+AS
+PROCEDURE f_date;
+FUNCTION f_sysdate RETURN DATE;
+END;
+
+--Package body
+CREATE OR REPLACE PACKAGE BODY PCK_EMP
+AS
+PROCEDURE f_date
+AS
+v_sysdate DATE;
+BEGIN
+SELECT SYSDATE INTO v_sysdate FROM dual;
+DBMS_OUTPUT.PUT_LINE(v_sysdate);
+END;
+
+FUNCTION f_sysdate
+RETURN DATE
+AS
+vsysdate DATE;
+BEGIN
+SELECT SYSDATE INTO vsysdate FROM dual;
+RETURN vsysdate;
+END;
+END PCK_EMP;
+EXEC PCK_EMP.f_date;--calling procedure
+SELECT PCK_EMP.f_sysdate FROM dual;--calling function
+
+--EXCEPTION
+DECLARE
+v_userid login.login_id%TYPE:=10;
+v_username login.username%TYPE;
+BEGIN
+SELECT username, login_id 
+INTO v_username, v_userid
+FROM login
+WHERE login_id=v_userid;
+DBMS_OUTPUT.PUT_LINE(v_username);
+END;
+--Error report -
+--ORA-01403: no data found
+--ORA-06512: at line 5
+--01403. 00000 -  "no data found"
+--*Cause:    No data was found from the objects.
+--*Action:   There was no data from the objects which may be due to end of fetch.
+
+--Exception Handled
+DECLARE
+v_userid login.login_id%TYPE:=10;
+v_username login.username%TYPE;
+BEGIN
+SELECT username, login_id 
+INTO v_username, v_userid
+FROM login
+WHERE login_id=v_userid;
+DBMS_OUTPUT.PUT_LINE(v_username);
+EXCEPTION
+WHEN no_data_found
+THEN DBMS_OUTPUT.PUT_LINE('Cannot Satisfy Your request for userid: '||v_userid);
+END;
+
+--MULTIPLE EXCEPTIONS
+DECLARE
+v_userid login.login_id%TYPE;
+BEGIN
+SELECT login_id INTO v_userid FROM login;
+END;
+--Error report -
+--ORA-01422: exact fetch returns more than requested number of rows
+--ORA-06512: at line 4
+--01422. 00000 -  "exact fetch returns more than requested number of rows"
+--*Cause:    The number specified in exact fetch is less than the rows returned.
+--*Action:   Rewrite the query or change number of rows requested
+
+--Exception Handled
+DECLARE
+v_userid login.login_id%TYPE;
+BEGIN
+SELECT login_id INTO v_userid FROM login;
+EXCEPTION
+WHEN no_data_found
+THEN DBMS_OUTPUT.PUT_LINE('Cannot Satisfy Your request for userid: '||v_userid);
+WHEN too_many_rows 
+THEN DBMS_OUTPUT.PUT_LINE('Cannot satisfy many records');
+END;
+
+--Handling User Defined Exception
+BEGIN
+UPDATE login SET password=NULL WHERE username='xyz';
+END;
+--01407. 00000 -  "cannot update (%s) to NULL"
+--*Cause:    
+
+DECLARE
+cannot_update_to_null EXCEPTION;--declaration of exception
+PRAGMA exception_init(cannot_update_to_null,-01407);--giving the ORA error number .
+BEGIN
+UPDATE login SET password=NULL WHERE username='xyz';
+EXCEPTION
+WHEN cannot_update_to_null 
+THEN DBMS_OUTPUT.PUT_LINE('Cannot be updated');
+END;
+
+--Creating our own exceptions
+DECLARE
+too_big_pwd EXCEPTION;
+v_user_pwd login.password%TYPE;
+BEGIN
+SELECT password INTO v_user_pwd FROM login
+WHERE username='xyz';
+IF LENGTH(v_user_pwd)>2 THEN
+RAISE too_big_pwd;
+END IF;
+DBMS_OUTPUT.PUT_LINE('THe password is too big');
+EXCEPTION
+WHEN too_big_pwd THEN
+DBMS_OUTPUT.PUT_LINE('THe password is too big you need to decrease it');
+raise_application_error(-20243,'The password of the selected user is big');
+END;
+
+--Composite DATA TYPE
+DECLARE
+v_user_id login.login_id%TYPE;
+v_user_name login.username%TYPE;
+v_user_pwd login.password%TYPE;
+BEGIN
+SELECT login_id, username, password 
+INTO v_user_id, v_user_name, v_user_pwd
+FROM login
+WHERE login_id=1;
+DBMS_OUTPUT.PUT_LINE(v_user_id||' '||v_user_name||' '||v_user_pwd);
+END;
+
+--REcord type
+DECLARE
+--like a temporary data structure in memory to hold multiple variables
+--record definition
+TYPE rec_login IS RECORD (
+username login.username%TYPE,
+login_id login.login_id%TYPE,
+password login.password%TYPE
+);
+v_rec_login rec_login;
+BEGIN
+SELECT username, password , login_id
+INTO v_rec_login
+FROM login
+WHERE login_id=1;
+DBMS_OUTPUT.PUT_LINE(v_rec_login.login_id, ||' '||v_rec_login.password||' '||v_rec_login.username);
+END;
+
+--ROW TYPE
+DECLARE
+v_rec_login login%ROWTYPE;
+BEGIN
+SELECT login_id, username, password
+INTO v_rec_login
+FROM login WHERE login_id=4;
+DBMS_OUTPUT.PUT_LINE(v_rec_login.login_id||' '||v_rec_login.username);
+END;
+
+--Cursor
+--Collections
+TYpes of collections
+1. Index By Table(Associative array)
+2. Nested Table
+3. VARRAY(Variable size array)
+Scenario
+Key                Value
+Varchar(20)         NUmber
+amar                10000
+akbar               20000
+
+--Index by table [Associative Array]:Key-value
+DECLARE
+--declaration of Associative array
+TYPE type_associative_array IS TABLE OF NUMBER INDEX BY VARCHAR(20);
+salary_list type_associative_array;
+emp_name VARCHAR(20);
+BEGIN
+--initialization of Associative array
+salary_list('Amar'):=10;
+salary_list('Akbar'):=20;
+salary_list('Anthony'):=30;
+
+--accessing of Associative array
+emp_name:=salary_list.FIRST;
+--dbms_output.put_line(emp_name)--amar
+--dbms_output.put_line(salary_list(emp_name))--10000
+WHILE emp_name IS NOT NULL LOOP
+DBMS_OUTPUT.PUT_LINE('Salary '||emp_name||' is '||TO_CHAR(salary_list(emp_name)));
+END LOOP;
+END;
+
+ SET SERVEROUTPUT ON;
+ 
+--Nested Tables
+DECLARE
+--declare of NESTED TABLE
+TYPE type_nested_table_name IS TABLE OF VARCHAR(20);
+TYPE type_nested_table_salary IS TABLE OF NUMBER;
+name_list type_nested_table_name;
+salary_list type_nested_table_salary;
+row_count NUMBER;
+BEGIN
+--initialization of Nested tables
+name_list:=type_nested_table_name('Amar', 'Akabar', 'Anthony');
+salary_list :=type_nested_table_salary(1000,2000,3000);
+row_count:=name_list.COUNT;
+DBMS_OUTPUT.PUT_LINE(row_count);
+FOR idx IN 1..row_count LOOP
+DBMS_OUTPUT.PUT_LINE('Employee '||name_list(idx));
+END LOOP;
+END;
+
+--VARRAY
+DECLARE
+--declaration of VARRAY
+TYPE type_varray_name IS VARRAY(3) OF VARCHAR(20);
+TYPE type_varray_salary IS VARRAY(3) OF NUMBER;
+name_list type_varray_name;
+salary_list type_varray_salary;
+BEGIN
+--initialization
+name_list:=type_varray_name('Amar', 'Akbar', 'Anthony');
+salary_list:=type_varray_salary(1000,2000,3000);
+FOR idx IN 1..name_list.COUNT() LOOP
+DBMS_OUTPUT.PUT_LINE('Employee: '||name_list(idx));
+END LOOP;
+END;
+
+--CURSOR  --Using explicit cursor
+DECLARE
+CURSOR cursor_name IS SELECT_statement;
+BEGIN
+OPEN cursor_name;
+FETCH cursor_name INTO variable, reocord etc...;
+--process variable record etc
+CLOSE cursor_name;
+END;
+
+--Cursor with SELECT
+DECLARE
+--cursor declaration
+CURSOR cur_emp IS SELECT first_name, last_name FROM employees;
+v_first_name employees.first_name%TYPE;
+v_last_name employees.last_name%TYPE;
+BEGIN
+--open cursor
+OPEN cur_emp;
+--fetch cursor
+FETCH cur_emp INTO v_first_name, v_last_name;
+--process it
+DBMS_OUTPUT.PUT_LINE('FIRST name: '||v_first_name||'Last name:'||v_last_name);
+CLOSE cur_emp;
+END;
+--cursor cannot be opened twice, it will give error
+
+--cursor with loop %NOTFOUND
+DECLARE
+CURSOR cur_emps IS SELECT first_name, last_name FROM employees;
+rec_emp cur_emps%ROWTYPE;
+BEGIN
+OPEN cur_emps;
+LOOP
+FETCH cur_emps INTO rec_emp;
+EXIT WHEN cur_emps%NOTFOUND; --cursor exit criteria
+DBMS_OUTPUT.PUT_LINE(rec_emp.first_name||' '||rec_emp.last_name);
+END LOOP;
+CLOSE cur_emps;
+END;
+
+--cursor-FOR..IN with select
+BEGIN
+FOR rec_emp IN (SELECT * FROM employees WHERE department_id=30)LOOP
+DBMS_OUTPUT.PUT_LINE(rec_emp.employee_id||' '||rec_emp.first_name);
+END LOOP;
+END;
+
+--CURSOR -WIth parameters
+*cursors can be used for many times
+*we can use cursors with parameters
+
+DECLARE
+CURSOR cur_emp(p_dept_id NUMBER) IS
+SELECT first_name, last_name FROM employees WHERE department_id=p_dept_id;
+rec_emp cur_emp%ROWTYPE;
+BEGIN
+OPEN cur_emp(20);
+FETCH cur_emps INTO rec_emp;
+DBMS_OUTPUT.PUT_LINE(cur_emp%ROWCOUNT);
+--triggers

@@ -1,0 +1,297 @@
+--SELF JOIN 
+ -- Self-Joins Using the ON Clause
+-- Self-Joins Using the ON Clause
+SELECT employee_id, first_name, last_name, manager_id, department_id FROM employees;
+-- 100 Steven Kin       null
+-- 101 Neena Kochhar    100 Steven King
+-- 102 Lex   De Haan    100 Steven King
+-- 103 Alex. Hunold     102 Lex De Haan
+-- 104 Bruce Ernst      103 Alex. Hunold
+
+SELECT e1.employee_id, e1.first_name, e1.last_name, e1.manager_id, e2.first_name, e2.last_name
+FROM employees e1
+JOIN employees e2
+ON (e1.manager_id = e2.employee_id)
+ORDER BY e1.employee_id;
+
+SELECT e1.employee_id, e1.first_name ||' '|| e1.last_name "Employee Name", 
+        e1.manager_id, e2.first_name ||' '|| e2.last_name "Manager Name"
+FROM employees e1
+JOIN employees e2
+ON (e1.manager_id = e2.employee_id)
+ORDER BY e1.employee_id;
+
+SELECT * FROM DEPARTMENTS;
+SELECT D1.DEPARTMENT_ID,D2.DEPARTMENT_NAME FROM DEPARTMENTS D1 JOIN DEPARTMENTS D2
+ON D1.DEPARTMENT_ID=D2.MANAGER_ID;
+
+--OUTER JOINS
+SELECT * FROM DEPARTMENTS;
+EMPLOYEE_ID 100 HAVING MANAGER_ID AS NULL
+EMPLOYEE_ID 178 HAVING DEPARTMENT_ID AS NULL
+SELECT * FROM EMPLOYEES
+
+SELECT COUNT(*) FROM DEPARTMENTS;
+SELECT COUNT(*) FROM EMPLOYEES;
+
+--LEFT OUTER JOIN
+SELECT E.EMPLOYEE_ID,E.FIRST_NAME,E.LAST_NAME,E.DEPARTMENT_ID,D.DEPARTMENT_NAME
+FROM EMPLOYEES E
+LEFT OUTER JOIN DEPARTMENTS D
+ON (E.DEPARTMENT_ID=D.DEPARTMENT_ID)
+
+--RIGHT OUTER JOIN
+SELECT E.EMPLOYEE_ID,E.FIRST_NAME,E.LAST_NAME,E.DEPARTMENT_ID,D.DEPARTMENT_NAME
+FROM EMPLOYEES E
+RIGHT OUTER JOIN DEPARTMENTS D
+ON (E.DEPARTMENT_ID=D.DEPARTMENT_ID)
+
+--CROSS JOIN
+--LESSON 6:-SUBQUERY
+A SUBQUERY IS A QUERY THAT IS NESTED INSIDE AS ELECT,INSERT,UPDATE OR DELTE STATEMENT OR INSIDE OTHER 
+--SUBQUERY STRUCTURE
+2.A SUBQUERY CAN ETRUN A SET OF ROWS TO ITS PARENT QUERY.
+3.A SCALER SUBQUERY IS A QUERY THAT RETURNS EXACTLY ONE VALUE:A SINGLE ROW, WITH A SINGLE COLUMN.
+
+A SUBQUERY IS OFTEN REFERREDD TO AS AN INNERQUERY AND THE STAEMENT WITHIN WHICH IT OCCURS IS THEN CALLED
+OUTER QUERY
+
+SUBUERY CNA BE USED WITH THE FOLLOWING CLAUSES
+1.SELECT CLAUSE
+2.FROM CLAUSE
+3.WHERE CLAUSE
+4.HAVING CLASUE
+
+SUBQUERIES CAN BE NESTED TO AN UNLIMITED DEPTH IN A FORM CLAUSE BUT 255 LEVEL IN WHERE CLAUSE.
+
+FINDOUT THE CURRENT MEMBERS OF DEPARTMENT AND STAFF AS ON TODAY.
+
+SELECT SYSDATE TODAY,
+(SELECT COUNT(*) FROM DEPARTMENTS) "DEPT COUNT",
+(SELECT COUNT(*) FROM EMPLOYEES) "EMP COUNT" FROM DUAL,
+
+--SUB QUERRY WITH WHERE CLAUSE
+SELECT FIRST_NAME,LAST_NAME FROM EMPLOYEES WHERE(EMPLOYEE_ID IN (SELECT MANAGER_ID FROM EMPLOYEES))
+
+--SUB QUERY IN FROM CLAUSE
+
+--GUIDELINES FOR SUBQUERIES
+1.ENCLOSE SUBQUERIES IN PARANTHESIS
+2.PLACE SUBQUERIES ON THE RIGHT SIDE OF THE COMPALRISON CONDITION
+3.THE ORDER BY CLAUSE IN THE SUB QUERY IS NOT NEEDED ULESS YOU ARE PERSFORMEING TIO N ANALAYSS.
+4.USE SINGLE-ROW OPERATORS WITH THE SINGLE ROW SUBQUERIES AND USE THE MULTIPLE ROW OPERATORS WITH THE MU
+ULYIPKLE ROW SUBUERIES.
+
+--TYPES OF SUBQUEROIES
+1.SIGNLE ROW SUBQUERIES
+2.MULTI ROW SUBQURIES
+
+SINGLE ROWS SUBQUERIES
+RETURND ONLY ONE RWS
+USE SINGLE ROW COMPARISON OPERATORS > =< >=/
+
+--EXECUTING SINGE ROW SUBQUERY
+SELCT LAST_NAME,JOB_ID,SALARY
+FROM EMPLOYEES
+WHERE JOB_ID =(SELECT JOB_ID FROM EMPLOYEES 
+WHERE EMPLOYEE_ID=141) AND SALARY>(SELECT SALARY FROM EMPLOYEES WHERE EMPLOYEE_ID=143)
+
+
+--USING GROUP FUNCTION IN SUBQUERY
+SELECT LAST_NAME,JOB_ID,SALARY
+FROM EMPLOYEES WHERE SALARY=(SELECT MIN(SALARY) FROM EMPLOYEES)
+
+--THE HAVING CLAUSE SUBQUEIES
+1.THE ORACLE SERVER EXECUTES SUBQUERIES FIRST.
+2.THE ORACLE SERVER RETURNS RESULTS INTO THE HAVING CLAUSE OF THE MAIN QUERY.
+
+SELECT DEPARTMENT_ID,MIN(SALARY)
+FROM EMPLOYEES GROUP BY DEPARTMENT_ID HAVING MIN(SALARY)>(SELECT MIN(SALARY) FROM
+EMPLOYEES WHERE DEPARTMENT_ID=50)
+
+SELECT EMPLOYEE_ID,LAST_NAME FROM EMPLOYEES WHERE SALARY=(SELECT MIN(SALARY) FROM EMPLOYEES GROUP BY DEPARTMENT_ID)
+--ERROR:ORA-01427: single-row subquery returns more than one row
+
+SELECT LAST_NAME,JOB_ID FROM EMPLOYEES WHERE JOB_ID=(SELECT JOB_ID FROM EMPLOYEES WHERE LAST_NAME="NOONE")
+
+--MULTIPLE ROW SUBQUERIES
+1.RETURN MORE THAN ONE ROW
+2.USE MULTIPLE ROW COMPARISON OPERATORS
+  IN-EQUAL TO ANY NUMBER IN THE LIST
+  ANY-COMPARE VALUE TO EACH VALUE RETURNED BY THE SUBQUERY
+  ALL-COMPARE VALUE TO EVERY VALUE RETURNED BY THE SUBQUERY
+  
+  --USING THE ANY OPERATOR IN MULTIPLE ROW SUBQUERIES
+  SELECT EMPLOYEE_ID,LAST_NAME,JOB_ID,SALARY FROM 
+  EMPLOYEES WHERE SALARY<ANY(SELECT SALARY FROM EMPLOYEES WHERE JOB_ID="IT_PROG")
+  AND JOB_ID<>"IT_PROG"
+  
+  --USING ALL OPERATOR IN MULTIPLE ROW SUBQUERIES
+  SELECT EMPLOYEE_ID, LAST_NAME, JOB_ID, SALARY
+  WHERE SALARY<ALL(SELECT SALARY FROM EMPLOYEES WHERE JOB_ID="IT_PROG")
+  AND JOB_ID<>"IT_PROG"
+  
+  --NULL VALUES IN A SUB QUERY -NO ROWS WILL BE SELCTED BY OUTER QUERY
+  SELECT EMP.LAST_NAME FROM EMPLOYEES
+  
+  ASSIGNMENT:-
+  --Q1.Display details of jobs where the minimum salary is greater than 10000.
+  SELECT * FROM JOBS WHERE MIN_SALARY>10000
+  
+  --Q2.Display the first name and join date of the employees who joined between 2002 and 2005.
+  SELECT FIRST_NAME, HIRE_DATE FROM EMPLOYEES WHERE TO_CHAR(HIRE_DATE,'YYYY') BETWEEN 2002 
+  AND 2005
+  
+  --Q3.Display first name and join date of the employees who is either IT Programmer or Sales Man.
+  SELECT FIRST_NAME,HIRE_DATE FROM EMPLOYEES WHERE JOB_ID IN ('IT_PROG' ,'SA_MAN')
+  
+  --Q4.Display employees who joined after 1st January 2008.
+  SELECT * FROM EMPLOYEES WHERE HIRE_DATE>'01-JAN-2008'
+  
+  --Q5.Display details of employee with ID 150 or 160.
+  SELECT * FROM EMPLOYEES WHERE EMPLOYEE_ID IN(150,160)
+  
+  --Q6.Display first name, salary, commission pct, and hire date for employees with salary less than 10000.
+  SELECT FIRST_NAME,SALARY,COMMISSION_PCT, HIRE_DATE FROM EMPLOYEES WHERE SALARY<10000
+  
+  --Q7.Display job Title, the difference between minimum and maximum salaries for jobs with max salary in the range 10000 to 20000.
+  SELECT JOB_TITLE, MAX_SALARY-MIN_SALARY FROM JOBS WHERE MAX_SALARY BETWEEN 10000 AND 20000
+  
+  --Q8.Display first name, salary, and round the salary to thousands.
+  SELECT FIRST_NAME,SALARY,ROUND(SALARY,-3) FROM EMPLOYEES
+  
+  --Q9.Display details of jobs in the descending order of the title.
+  SELECT  * FROM JOBS ORDER BY JOB_TITLE;
+  
+  --Q10.Display employees where the first name or last name starts with S.
+  SELECT FIRST_NAME,LAST_NAME FROM EMPLOYEES WHERE FIRST_NAME LIKE 'S%' OR LAST_NAME LIKE 'S%'
+  
+  --Q11.Display employees who joined in the month of May.
+  SELECT * FROM EMPLOYEES WHERE TO_CHAR(HIRE_DATE,'MON')='MAY'
+  
+  --Q12.Display details of the employees where commission percentage is null and salary in the range 5000 to 10000 and department is 30.
+  SELECT * FROM EMPLOYEES WHERE COMMISSION_PCT IS NULL AND SALARY BETWEEN 5000 AND 10000 AND DEPARTMENT_ID=30
+  
+  --Q13.Display first name and date of first salary of the employees.
+  
+  --LESSON 7 USING THE SET OPERATORS
+  --UNION
+  --UNION ALL
+  --INTERSECTION
+  INSERT INTO EMPLOYEES  (EMPLOYEE_ID, FIRST_NAME, LAST_NAME, EMAIL, PHONE_NUMBER, HIRE_DATE,JOB_ID, SALARY, DEPARTMENT_ID) 
+VALUES (207, 'ANGELA', 'SNYDER','ANGELA','215 253 4737', SYSDATE, 'SA_MAN', 12000, 80)
+
+REGEXP_LIKE Condition
+SELECT first_name, last_name
+FROM employees
+WHERE REGEXP_LIKE (first_name, '^Ste(v|ph)en$');
+SELECT department_id, job_id, SUM(salary), MIN(salary), MAX(salary), ROUND(AVG(salary), 0)
+FROM employees 
+WHERE job_id IS NOT NULL
+GROUP BY department_id, job_id
+ORDER BY department_id, job_id;
+HAVING SUM(salary)>10000
+SELECT department_name, first_name, last_name
+FROM employees e JOIN departments d ON
+e.department_id=d.department_id;
+
+
+SELECT * FROM countries CROSS JOIN regions;
+--lesson 8
+--create table
+CREATE TABLE database (
+username char(30), password char(30), 
+creation_date date)
+
+--describe table
+DESC database
+
+--Inserting data way 1
+INSERT INTO database(username, password, creation_date)
+VALUES('aniket', 'thor', SYSDATE)
+
+--Inserting data way 2
+INSERT INTO database(password,username,creation_date) 
+VALUES ('somesh','somesh123', SYSDATE)
+
+--Inserting data way 3
+INSERT INTO database VALUES ('unkonown', 'unknown123', '01-05-01') 
+
+--selecting records
+SELECT * FROM database;
+SELECT username from database where password='thor'
+
+--droping table
+DROP TABLE database;
+
+--update
+--updating set of rows using where clause
+UPDATE database set password='aniket123' where username='aniket'
+
+--updating all rows
+UPDATE database set password=UPPER(password)
+
+--delete
+--deleting set of rows
+DELETE database where username='aniket'
+
+--deleting all rows
+DELETE database;
+
+Assignment - How to create a NEW table from existing table, with empty data
+CREATE TABLE employees_copy AS  SELECT * FROM employees WHERE 1=0; --result of WHERE clause should be FALSE
+DESC employees_copy
+SELECT * FROM employees_copy
+SELECT * from database
+
+--Truncate table
+TRUNCATE TABLE database
+
+-- DELETE VS TRUNCATE
+-- DELETE is DML and TRUNCATE is DDL statement
+-- DELETE can be rolledback (transaction log is recorded) and TRUNCATE can not
+-- DELETE requires a shared lock whereas TRUNCATE requires exclusive lock
+-- DELETE - WHERE cluase can be used whereas TRUNCATE we can not
+-- DELETE fires triggers whereas TRUNCATE do not.
+ --DDL commands are auto commited hence cannot be rolled back
+ 
+ --Transaction Management
+ --STEP #1
+ DROP TABLE database;
+ CREATE TABLE database (username char(30), password char(30))
+ DESC database;
+ 
+ --step#2
+ INSERT INTO database(password,username,creation_date) 
+VALUES ('somesh','somesh123', SYSDATE)
+ SELECT * FROM database
+ COMMIT
+ DELETE FROM database where username='aniket'
+ ROLLBACK
+ 
+ 
+ --Lesson 9
+ 
+ -- EXAMPLE - CREATE TABLE - PRIMARY KEY - UNIQUE KEY - DEFAULT - FOREIGN KEY - CHECK
+Table - login
+login_id NUMBER(6)  - PK
+user_name CHAR(30)  - UQ
+password CHAR(10)   - NOT NULL
+creation_date DATE  - todays date by default
+
+Table - post
+post_id NUMBER(6)   - PK
+post_Date DATE - todays date by default
+post_description VARCHAR(50) NOT NULL
+login_id NUMBER(6) - FK Login(login_id)
+
+--STEP 1
+CREATE TABLE login (
+login_id int NOT NULL,
+username char(30) NOT NULL,
+password char(30) NOT NULL,
+creation_date DATE DEFAULT SYSDATE,
+CONSTRAINT login_login_id_PK PRIMARY KEY(login_id),
+CONSTRAINT login_username_UQ UNIQUE(username),
+CONSTRAINT login_password_CK CHECK(LENGTH(password)>=8)
+)
