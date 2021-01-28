@@ -19,4 +19,7 @@ Do follow this steps.
 1. Open cmd
 2. `sqlplus`
 3. Type username as `system` and for password you have to use that password which you have given on sign up.
-5. 
+5. CONNECT system/admin
+6. ALTER USER hr IDENTIFIED BY hr ACCOUNT UNLOCK;
+7. CONNECT hr/hr;
+8. SELECT * FROM departments;
